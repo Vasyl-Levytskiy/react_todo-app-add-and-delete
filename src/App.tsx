@@ -39,6 +39,20 @@ export const App: React.FC = () => {
     loadTodos();
   }, []);
 
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setError('');
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [error]);
+
   const visibleTodos = useMemo(() => {
     let filteredTodos = [...todos];
 
