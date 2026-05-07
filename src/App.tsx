@@ -182,6 +182,8 @@ export const App: React.FC = () => {
         }
       }),
     );
+
+    inputRef.current?.focus();
   };
 
   if (!USER_ID) {
