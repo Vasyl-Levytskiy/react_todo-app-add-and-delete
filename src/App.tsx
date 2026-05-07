@@ -139,6 +139,8 @@ export const App: React.FC = () => {
           return todo.id !== todoId;
         });
       });
+
+      inputRef.current?.focus();
     } catch {
       setError(ErrorMessage.Delete);
     } finally {
