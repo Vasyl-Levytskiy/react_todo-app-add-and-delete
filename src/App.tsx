@@ -1,19 +1,20 @@
 /* eslint-disable max-len */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+
 import { UserWarning } from './UserWarning';
 
-import { getTodos, addTodo, deleteTodo, USER_ID } from './api/todos';
-
-import { Todo } from './types/Todo';
+import { addTodo, deleteTodo, getTodos, USER_ID } from './api/todos';
 
 import { Header } from './components/Header/Header';
-import { TodoList } from './components/TodoList/TodoList';
 import { Footer } from './components/Footer/Footer';
 import { ErrorNotification } from './components/ErrorNotif/ErrorNotification';
+import { TodoList } from './components/TodoList/TodoList';
 
-import { Filter } from './enums/Filter';
 import { ErrorMessage } from './enums/ErrorMessage';
+import { Filter } from './enums/Filter';
+
+import { Todo } from './types/Todo';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -23,13 +24,16 @@ export const App: React.FC = () => {
   const [title, setTitle] = useState('');
   const [filter, setFilter] = useState(Filter.All);
   const [isAdding, setIsAdding] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+
   const loadTodos = async () => {
     try {
       setError('');
-      const data = await getTodos();
 
-      setTodos(data);
+      const todosFromServer = await getTodos();
+
+      setTodos(todosFromServer);
     } catch {
       setError(ErrorMessage.Load);
     }
@@ -52,6 +56,12 @@ export const App: React.FC = () => {
       clearTimeout(timer);
     };
   }, [error]);
+
+  useEffect(() => {
+    if (!isAdding) {
+      inputRef.current?.focus();
+    }
+  }, [isAdding]);
 
   const visibleTodos = useMemo(() => {
     let filteredTodos = [...todos];
@@ -77,6 +87,7 @@ export const App: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     const trimmedTitle = title.trim();
 
     if (!trimmedTitle) {
@@ -93,6 +104,7 @@ export const App: React.FC = () => {
 
     setError('');
     setIsAdding(true);
+
     setTempTodo({
       ...newTodo,
       id: 0,
@@ -111,7 +123,6 @@ export const App: React.FC = () => {
     } finally {
       setTempTodo(null);
       setIsAdding(false);
-      inputRef.current?.focus();
     }
   };
 
@@ -122,6 +133,7 @@ export const App: React.FC = () => {
 
     try {
       await deleteTodo(todoId);
+
       setTodos(currentTodos => {
         return currentTodos.filter(todo => {
           return todo.id !== todoId;
@@ -145,13 +157,13 @@ export const App: React.FC = () => {
 
     await Promise.allSettled(
       completedTodos.map(async todo => {
-        // додаємо loader
         setProcessingIds(currentIds => {
           return [...currentIds, todo.id];
         });
 
         try {
           await deleteTodo(todo.id);
+
           setTodos(currentTodos => {
             return currentTodos.filter(currentTodo => {
               return currentTodo.id !== todo.id;
